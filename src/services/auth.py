@@ -5,7 +5,7 @@ from pwdlib import PasswordHash
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.security import create_access_token
+from src.core.security import create_access_token, create_refresh_token
 from src.models.user import User
 from src.schemas.user import UserCreate, UserLogin
 
@@ -50,9 +50,9 @@ async def register_user(
 async def authenticate_user(
     user_data: UserLogin,
     db: AsyncSession,
-) -> str:
+) -> tuple[str, str]:
     result = await db.execute(
-        select(User).where(User.email == user_data.email)
+        select(User).where(User.email == user_data.email),
     )
     user = result.scalar_one_or_none()
 
@@ -68,7 +68,10 @@ async def authenticate_user(
     if not user.is_active:
         raise ValueError("User account is not active")
 
-    return create_access_token(user.id)
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+
+    return access_token, refresh_token
 
 
 async def activate_user(
