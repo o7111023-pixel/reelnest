@@ -3,12 +3,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_db
 from src.schemas.user import (
+    ActivationResponse,
     TokenResponse,
     UserCreate,
     UserLogin,
     UserResponse,
 )
-from src.services.auth import authenticate_user, register_user
+from src.services.auth import (
+    activate_user,
+    authenticate_user,
+    register_user,
+)
 
 
 router = APIRouter(
@@ -56,4 +61,25 @@ async def login(
     return TokenResponse(
         access_token=access_token,
         token_type="bearer",
+    )
+
+
+@router.get(
+    "/activate/{token}",
+    response_model=ActivationResponse,
+)
+async def activate(
+    token: str,
+    db: AsyncSession = Depends(get_db),
+) -> ActivationResponse:
+    try:
+        await activate_user(token, db)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+    return ActivationResponse(
+        message="User account activated successfully",
     )
