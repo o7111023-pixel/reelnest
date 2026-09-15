@@ -2,11 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_db
-from src.schemas.user import UserCreate, UserResponse
-from src.services.auth import register_user
+from src.schemas.user import (
+    TokenResponse,
+    UserCreate,
+    UserLogin,
+    UserResponse,
+)
+from src.services.auth import authenticate_user, register_user
 
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"],
+)
 
 
 @router.post(
@@ -27,3 +35,25 @@ async def register(
         ) from exc
 
     return user
+
+
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+)
+async def login(
+    user_data: UserLogin,
+    db: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    try:
+        access_token = await authenticate_user(user_data, db)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
+
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+    )
