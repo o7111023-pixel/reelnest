@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from src.api.v1.auth import router as auth_router
+from src.api.v1.movies import router as movies_router
 
 
 app = FastAPI(
@@ -10,8 +11,9 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+app.include_router(movies_router)
 
 
 @app.get("/")
-def read_root() -> dict[str, str]:
+async def read_root() -> dict[str, str]:
     return {"message": "Welcome to ReelNest!"}

@@ -7,6 +7,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from src.core.config import settings
 from src.db.database import Base
 from src.models.user import User
+from src.models.movie import Movie
+from src.models.genre import Genre
+from src.models.actor import Actor
+from src.models.director import Director
 
 
 config = context.config
