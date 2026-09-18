@@ -6,6 +6,10 @@ from pydantic import BaseModel, ConfigDict
 from src.models.order import OrderStatus
 
 
+class OrderStatusUpdate(BaseModel):
+    status: OrderStatus
+
+
 class OrderItemResponse(BaseModel):
     movie_id: int
     price: Decimal
