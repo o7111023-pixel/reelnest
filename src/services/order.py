@@ -1,25 +1,32 @@
 from decimal import Decimal
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.movie import Movie
-from src.models.order import Cart, CartItem, Order, OrderItem, OrderStatus
+from src.models.order import (
+    Cart,
+    CartItem,
+    Order,
+    OrderItem,
+    OrderStatus,
+)
 
 
 async def create_order_from_cart(
     db: AsyncSession,
     user_id: int,
-) -> Order:
+):
     cart_result = await db.execute(
         select(Cart).where(Cart.user_id == user_id)
     )
+
     cart = cart_result.scalar_one_or_none()
 
     if cart is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=404,
             detail="Cart not found",
         )
 
@@ -28,11 +35,12 @@ async def create_order_from_cart(
         .join(Movie, Movie.id == CartItem.movie_id)
         .where(CartItem.cart_id == cart.id)
     )
+
     items = list(result.all())
 
     if not items:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=400,
             detail="Cart is empty",
         )
 
@@ -48,6 +56,7 @@ async def create_order_from_cart(
     )
 
     db.add(order)
+
     await db.flush()
 
     for _, movie in items:
@@ -56,11 +65,12 @@ async def create_order_from_cart(
             movie_id=movie.id,
             price=movie.price,
         )
+
         db.add(order_item)
 
     await db.execute(
         delete(CartItem).where(
-            CartItem.cart_id == cart.id,
+            CartItem.cart_id == cart.id
         )
     )
 
@@ -73,7 +83,7 @@ async def create_order_from_cart(
 async def get_user_orders(
     db: AsyncSession,
     user_id: int,
-) -> list[Order]:
+):
     result = await db.execute(
         select(Order)
         .where(Order.user_id == user_id)
@@ -87,7 +97,7 @@ async def get_user_order(
     db: AsyncSession,
     user_id: int,
     order_id: int,
-) -> Order:
+):
     result = await db.execute(
         select(Order).where(
             Order.id == order_id,
@@ -99,8 +109,28 @@ async def get_user_order(
 
     if order is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=404,
             detail="Order not found",
         )
+
+    return order
+
+
+async def update_order_status(
+    db: AsyncSession,
+    user_id: int,
+    order_id: int,
+    new_status: OrderStatus,
+):
+    order = await get_user_order(
+        db=db,
+        user_id=user_id,
+        order_id=order_id,
+    )
+
+    order.status = new_status
+
+    await db.commit()
+    await db.refresh(order)
 
     return order
