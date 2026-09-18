@@ -13,6 +13,7 @@ from src.models.actor import Actor
 from src.models.director import Director
 
 from src.models.movie_interaction import Favorite, MovieLike, MovieRating
+from src.models.order import Cart, CartItem, Order, OrderItem
 
 
 config = context.config
