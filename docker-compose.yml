@@ -12,5 +12,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reelnest-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://reelnest:reelnest@postgres:5432/reelnest
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
 volumes:
   postgres_data:
