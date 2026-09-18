@@ -14,6 +14,7 @@ from src.models.director import Director
 
 from src.models.movie_interaction import Favorite, MovieLike, MovieRating
 from src.models.order import Cart, CartItem, Order, OrderItem
+from src.models.payment import Payment
 
 
 config = context.config
