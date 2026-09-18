@@ -5,7 +5,7 @@ from src.api.v1.cart import router as cart_router
 from src.api.v1.movies import router as movies_router
 from src.api.v1.movie_interactions import router as movie_interactions_router
 from src.api.v1.orders import router as orders_router
-
+from src.api.v1.payments import router as payments_router
 
 app = FastAPI(
     title="ReelNest API",
@@ -18,7 +18,7 @@ app.include_router(movies_router)
 app.include_router(movie_interactions_router)
 app.include_router(cart_router)
 app.include_router(orders_router)
-
+app.include_router(payments_router)
 
 @app.get("/")
 async def read_root() -> dict[str, str]:
