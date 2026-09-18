@@ -94,3 +94,63 @@ async def create_payment(
     await db.refresh(payment)
 
     return payment, session.url
+
+
+async def handle_stripe_webhook(
+    db: AsyncSession,
+    payload: bytes,
+    signature: str,
+):
+    try:
+        event = stripe.Webhook.construct_event(
+            payload=payload,
+            sig_header=signature,
+            secret=settings.stripe_webhook_secret,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid webhook payload",
+        ) from exc
+    except stripe.error.SignatureVerificationError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid webhook signature",
+        ) from exc
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+
+        stripe_session_id = session["id"]
+
+        result = await db.execute(
+            select(Payment).where(
+                Payment.stripe_session_id
+                == stripe_session_id
+            )
+        )
+
+        payment = result.scalar_one_or_none()
+
+        if payment is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Payment not found",
+            )
+
+        payment.status = PaymentStatus.PAID
+
+        order_result = await db.execute(
+            select(Order).where(
+                Order.id == payment.order_id
+            )
+        )
+
+        order = order_result.scalar_one_or_none()
+
+        if order is not None:
+            order.status = OrderStatus.PAID
+
+        await db.commit()
+
+    return {"message": "Webhook processed"}

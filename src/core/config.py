@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     database_url: str
     secret_key: str
     stripe_secret_key: str
+    stripe_webhook_secret: str
     frontend_url: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(
