@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from src.api.v1.auth import router as auth_router
 from src.api.v1.movies import router as movies_router
+from src.api.v1.movie_interactions import router as movie_interactions_router
 
 
 app = FastAPI(
@@ -12,6 +13,7 @@ app = FastAPI(
 
 app.include_router(auth_router)
 app.include_router(movies_router)
+app.include_router(movie_interactions_router)
 
 
 @app.get("/")

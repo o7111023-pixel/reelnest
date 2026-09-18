@@ -12,6 +12,8 @@ from src.models.genre import Genre
 from src.models.actor import Actor
 from src.models.director import Director
 
+from src.models.movie_interaction import Favorite, MovieLike, MovieRating
+
 
 config = context.config
 
