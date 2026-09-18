@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir poetry==2.4.3
 COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+    && poetry install --no-interaction --no-ansi --no-root
 
 COPY . .
 
